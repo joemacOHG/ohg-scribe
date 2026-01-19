@@ -85,7 +85,7 @@ pub async fn identify_speakers(
         questions,
         input_text: transcript_text,
         context: "Your task is to infer the speaker's name from the speaker-labelled transcript. If a speaker introduces themselves or is addressed by name, use that. If you cannot determine a name, respond with 'Unknown'.".to_string(),
-        final_model: "anthropic/claude-3-5-sonnet".to_string(),
+        final_model: "anthropic/claude-3-5-haiku-20241022".to_string(),
     };
     
     info!("Sending LeMUR request...");
