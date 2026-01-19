@@ -35,7 +35,7 @@
       "endpoints": [
         "https://github.com/joemacOHG/ohg-scribe/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZGMDk2RTBDQzY4MUQ4NkIKUldScjJJSEdERzRKYjRVTWphY1Q4RE1jaEluSnptejF6emR5UEd2Z2JSL1c2VjlRNmdoaUJYdGgK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENENjA3RTkzMzYzODlDQzkKUldUSm5EZzZrMzVnemJGdTlrVzJuWlJKb0FQZ1dpNk5QMVJXYmdLUVZxd2RYUmR3bml2SEVkZDYK"
     }
   },
   "bundle": {
