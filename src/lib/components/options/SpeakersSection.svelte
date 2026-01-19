@@ -1,38 +1,52 @@
 <script lang="ts">
-    import type { ConversationType } from "$lib/types";
-    import { CONVERSATION_TYPE_LABELS } from "$lib/types";
+    import type { SpeakerLabelMode } from "$lib/types";
+    import { SPEAKER_LABEL_OPTIONS } from "$lib/types";
 
     interface Props {
         speakerCount: "auto" | number;
-        conversationType: ConversationType;
-        speakerNames: string;
+        speakerLabelMode: SpeakerLabelMode;
+        speakerNamesInput: string;
         onSpeakerCountChange: (value: "auto" | number) => void;
-        onConversationTypeChange: (value: ConversationType) => void;
-        onSpeakerNamesChange: (value: string) => void;
+        onSpeakerLabelModeChange: (value: SpeakerLabelMode) => void;
+        onSpeakerNamesInputChange: (value: string) => void;
     }
 
     let {
         speakerCount,
-        conversationType,
-        speakerNames,
+        speakerLabelMode,
+        speakerNamesInput,
         onSpeakerCountChange,
-        onConversationTypeChange,
-        onSpeakerNamesChange,
+        onSpeakerLabelModeChange,
+        onSpeakerNamesInputChange,
     }: Props = $props();
+
+    // Show text input for known-names and custom-roles modes
+    let showTextInput = $derived(
+        speakerLabelMode === "known-names" ||
+            speakerLabelMode === "custom-roles",
+    );
+    let textInputPlaceholder = $derived(
+        speakerLabelMode === "known-names"
+            ? "Dr. Smith, Dr. Jones, Sarah, Mike..."
+            : "Role 1, Role 2, Role 3...",
+    );
+    let textInputLabel = $derived(
+        speakerLabelMode === "known-names" ? "Speaker names" : "Custom roles",
+    );
 
     function handleSpeakerCountChange(e: Event) {
         const value = (e.target as HTMLSelectElement).value;
         onSpeakerCountChange(value === "auto" ? "auto" : parseInt(value));
     }
 
-    function handleConversationTypeChange(e: Event) {
-        const value = (e.target as HTMLSelectElement).value as ConversationType;
-        onConversationTypeChange(value);
+    function handleLabelModeChange(e: Event) {
+        const value = (e.target as HTMLSelectElement).value as SpeakerLabelMode;
+        onSpeakerLabelModeChange(value);
     }
 
-    function handleSpeakerNamesChange(e: Event) {
+    function handleTextInputChange(e: Event) {
         const value = (e.target as HTMLInputElement).value;
-        onSpeakerNamesChange(value);
+        onSpeakerNamesInputChange(value);
     }
 </script>
 
@@ -71,36 +85,39 @@
                 </select>
             </div>
             <div class="input-group">
-                <label class="input-label" for="conversation-type"
-                    >Conversation type</label
+                <label class="input-label" for="speaker-labels"
+                    >Speaker labels</label
                 >
                 <select
-                    id="conversation-type"
+                    id="speaker-labels"
                     class="new-select"
-                    value={conversationType}
-                    onchange={handleConversationTypeChange}
+                    value={speakerLabelMode}
+                    onchange={handleLabelModeChange}
                 >
-                    {#each Object.entries(CONVERSATION_TYPE_LABELS) as [value, label]}
-                        <option {value}>{label}</option>
+                    {#each Object.entries(SPEAKER_LABEL_OPTIONS) as [value, config]}
+                        <option {value}>{config.label}</option>
                     {/each}
                 </select>
             </div>
         </div>
-        <div class="input-row">
-            <div class="input-group">
-                <label class="input-label" for="speaker-names"
-                    >Speaker names (optional)</label
-                >
-                <input
-                    type="text"
-                    id="speaker-names"
-                    class="new-input"
-                    placeholder="Dr. Smith, Lindsay, Kate"
-                    value={speakerNames}
-                    oninput={handleSpeakerNamesChange}
-                />
+
+        {#if showTextInput}
+            <div class="input-row">
+                <div class="input-group">
+                    <label class="input-label" for="speaker-names-input"
+                        >{textInputLabel}</label
+                    >
+                    <input
+                        type="text"
+                        id="speaker-names-input"
+                        class="new-input"
+                        placeholder={textInputPlaceholder}
+                        value={speakerNamesInput}
+                        oninput={handleTextInputChange}
+                    />
+                </div>
             </div>
-        </div>
+        {/if}
 
         <div class="inline-help">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
@@ -109,9 +126,17 @@
                 <path d="M12 8h.01" />
             </svg>
             <p>
-                Setting the exact speaker count improves identification
-                accuracy. Add names in speaking order to label speakers in the
-                transcript.
+                {#if speakerLabelMode === "auto-names"}
+                    AI will try to identify speaker names from the conversation.
+                {:else if speakerLabelMode === "known-names"}
+                    Enter names of expected speakers (comma-separated).
+                {:else if speakerLabelMode === "custom-roles"}
+                    Enter custom role labels (comma-separated).
+                {:else if speakerLabelMode === "generic"}
+                    Speakers will be labeled as Speaker A, B, C, etc.
+                {:else}
+                    Speakers will be labeled by their role in the conversation.
+                {/if}
             </p>
         </div>
     </div>

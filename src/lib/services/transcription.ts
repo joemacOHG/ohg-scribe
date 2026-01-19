@@ -14,7 +14,8 @@ export interface RustTranscriptionOptions {
     detect_topics: boolean;
     analyze_sentiment: boolean;
     extract_key_phrases: boolean;  // auto_highlights in AssemblyAI
-    conversation_type: string | null;  // For speaker identification by role
+    speaker_label_mode: string;    // 'generic' | 'auto-names' | 'known-names' | 'interview' | etc.
+    speaker_values: string[];      // Names or custom roles from user input
 }
 
 export interface TranscriptResponse {
@@ -90,6 +91,11 @@ export async function submitTranscription(
     apiKey: string,
     options: TranscriptionOptions
 ): Promise<string> {
+    // Parse speaker values from comma-separated input
+    const speakerValues = options.speakerNamesInput
+        ? options.speakerNamesInput.split(',').map(s => s.trim()).filter(s => s.length > 0)
+        : [];
+
     const rustOptions: RustTranscriptionOptions = {
         max_speakers: options.speakerCount === 'auto' ? null : options.speakerCount,
         boost_words: options.boostWords,
@@ -97,7 +103,8 @@ export async function submitTranscription(
         detect_topics: options.detectTopics,
         analyze_sentiment: options.analyzeSentiment,
         extract_key_phrases: options.extractKeyPhrases,
-        conversation_type: options.conversationType === 'none' ? null : options.conversationType
+        speaker_label_mode: options.speakerLabelMode,
+        speaker_values: speakerValues
     };
     return await invoke<string>('submit_transcription', { uploadUrl, apiKey, options: rustOptions });
 }

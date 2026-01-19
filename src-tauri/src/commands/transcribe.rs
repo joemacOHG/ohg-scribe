@@ -39,7 +39,8 @@ pub struct TranscriptionOptions {
     pub detect_topics: bool,
     pub analyze_sentiment: bool,
     pub extract_key_phrases: bool,  // auto_highlights in AssemblyAI
-    pub conversation_type: Option<String>,  // For speaker identification: interview, podcast, etc.
+    pub speaker_label_mode: String,  // 'generic' | 'auto-names' | 'known-names' | 'interview' | etc.
+    pub speaker_values: Vec<String>,  // User-provided names or custom roles
 }
 
 /// Response from upload endpoint
@@ -235,9 +236,25 @@ pub async fn submit_transcription(
 ) -> Result<String, TranscribeError> {
     info!("Submitting transcription for: {}", upload_url);
     
-    // Build speech_understanding config based on conversation type
-    let speech_understanding = match options.conversation_type.as_deref() {
-        Some("interview") => Some(SpeechUnderstanding {
+    // Build speech_understanding config based on speaker label mode
+    let speech_understanding = match options.speaker_label_mode.as_str() {
+        "auto-names" => Some(SpeechUnderstanding {
+            request: SpeechUnderstandingRequest {
+                speaker_identification: SpeakerIdentification {
+                    speaker_type: "name".to_string(),
+                    known_values: vec![],  // Empty = auto-detect names from conversation
+                },
+            },
+        }),
+        "known-names" => Some(SpeechUnderstanding {
+            request: SpeechUnderstandingRequest {
+                speaker_identification: SpeakerIdentification {
+                    speaker_type: "name".to_string(),
+                    known_values: options.speaker_values.clone(),
+                },
+            },
+        }),
+        "interview" => Some(SpeechUnderstanding {
             request: SpeechUnderstandingRequest {
                 speaker_identification: SpeakerIdentification {
                     speaker_type: "role".to_string(),
@@ -245,7 +262,7 @@ pub async fn submit_transcription(
                 },
             },
         }),
-        Some("podcast") => Some(SpeechUnderstanding {
+        "podcast" => Some(SpeechUnderstanding {
             request: SpeechUnderstandingRequest {
                 speaker_identification: SpeakerIdentification {
                     speaker_type: "role".to_string(),
@@ -253,23 +270,7 @@ pub async fn submit_transcription(
                 },
             },
         }),
-        Some("customer-call") => Some(SpeechUnderstanding {
-            request: SpeechUnderstandingRequest {
-                speaker_identification: SpeakerIdentification {
-                    speaker_type: "role".to_string(),
-                    known_values: vec!["Agent".to_string(), "Customer".to_string()],
-                },
-            },
-        }),
-        Some("meeting") => Some(SpeechUnderstanding {
-            request: SpeechUnderstandingRequest {
-                speaker_identification: SpeakerIdentification {
-                    speaker_type: "role".to_string(),
-                    known_values: vec!["Presenter".to_string(), "Participant".to_string()],
-                },
-            },
-        }),
-        Some("panel") => Some(SpeechUnderstanding {
+        "panel" => Some(SpeechUnderstanding {
             request: SpeechUnderstandingRequest {
                 speaker_identification: SpeakerIdentification {
                     speaker_type: "role".to_string(),
@@ -277,19 +278,19 @@ pub async fn submit_transcription(
                 },
             },
         }),
-        Some("support") => Some(SpeechUnderstanding {
+        "custom-roles" => Some(SpeechUnderstanding {
             request: SpeechUnderstandingRequest {
                 speaker_identification: SpeakerIdentification {
                     speaker_type: "role".to_string(),
-                    known_values: vec!["Support".to_string(), "Customer".to_string()],
+                    known_values: options.speaker_values.clone(),
                 },
             },
         }),
-        _ => None,  // "none" or unrecognized - no speaker identification
+        _ => None,  // "generic" or unrecognized - no speaker identification
     };
     
     if speech_understanding.is_some() {
-        info!("Speaker identification enabled with type: {:?}", options.conversation_type);
+        info!("Speaker identification enabled with mode: {:?}", options.speaker_label_mode);
     }
     
     let mut request = TranscriptRequest {

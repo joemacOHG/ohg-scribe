@@ -4,7 +4,7 @@ import type { TranscriptionOptions } from '../types';
 
 const defaultOptions: TranscriptionOptions = {
     speakerCount: 'auto',
-    speakerNames: [],
+    speakerLabelMode: 'generic',
     speakerNamesInput: '',
     boostWords: [],
     boostWordsInput: '',
@@ -13,7 +13,6 @@ const defaultOptions: TranscriptionOptions = {
     detectTopics: false,
     analyzeSentiment: false,
     extractKeyPhrases: false,
-    conversationType: 'none'
 };
 
 function createOptionsStore() {

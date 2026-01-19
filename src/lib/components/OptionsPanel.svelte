@@ -1,6 +1,6 @@
 <script lang="ts">
   import { optionsStore } from "$lib/stores/options";
-  import type { TranscriptionOptions, ConversationType } from "$lib/types";
+  import type { TranscriptionOptions, SpeakerLabelMode } from "$lib/types";
   import SpeakersSection from "./options/SpeakersSection.svelte";
   import VocabularySection from "./options/VocabularySection.svelte";
   import AnalysisSection from "./options/AnalysisSection.svelte";
@@ -19,7 +19,7 @@
 
   let options: TranscriptionOptions = $state({
     speakerCount: "auto",
-    speakerNames: [],
+    speakerLabelMode: "generic",
     speakerNamesInput: "",
     boostWords: [],
     boostWordsInput: "",
@@ -28,7 +28,6 @@
     detectTopics: false,
     analyzeSentiment: false,
     extractKeyPhrases: false,
-    conversationType: "none",
   });
 
   optionsStore.subscribe((value) => {
@@ -40,12 +39,16 @@
     optionsStore.update({ speakerCount: value });
   }
 
-  function handleConversationTypeChange(value: ConversationType) {
-    optionsStore.update({ conversationType: value });
+  function handleSpeakerLabelModeChange(value: SpeakerLabelMode) {
+    optionsStore.update({ speakerLabelMode: value });
+    // Clear the names input when switching modes
+    if (value !== "known-names" && value !== "custom-roles") {
+      optionsStore.update({ speakerNamesInput: "" });
+    }
   }
 
-  function handleSpeakerNamesChange(value: string) {
-    optionsStore.setSpeakerNames(value);
+  function handleSpeakerNamesInputChange(value: string) {
+    optionsStore.update({ speakerNamesInput: value });
   }
 
   // Vocabulary handlers
@@ -105,11 +108,11 @@
     <div class="options-content">
       <SpeakersSection
         speakerCount={options.speakerCount}
-        conversationType={options.conversationType}
-        speakerNames={options.speakerNamesInput}
+        speakerLabelMode={options.speakerLabelMode}
+        speakerNamesInput={options.speakerNamesInput}
         onSpeakerCountChange={handleSpeakerCountChange}
-        onConversationTypeChange={handleConversationTypeChange}
-        onSpeakerNamesChange={handleSpeakerNamesChange}
+        onSpeakerLabelModeChange={handleSpeakerLabelModeChange}
+        onSpeakerNamesInputChange={handleSpeakerNamesInputChange}
       />
 
       <VocabularySection

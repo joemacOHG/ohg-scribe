@@ -1,19 +1,27 @@
 // src/lib/types.ts
 
-// Conversation types for speaker identification (tailored for advertising agency)
-export type ConversationType =
-  | 'none'           // No speaker identification (keeps Speaker A, B, etc.)
-  | 'interview'      // Interviewer, Interviewee (e.g., KOL interviews, HCP meetings)
-  | 'meeting'        // Presenter, Participant (e.g., client presentations, internal meetings)
-  | 'panel';         // Moderator, Panelist (e.g., advisory boards, expert panels)
+// Speaker label modes for identification
+export type SpeakerLabelMode =
+  | 'generic'         // Keep Speaker A, B, C... (default)
+  | 'auto-names'      // Try to auto-detect names from conversation
+  | 'known-names'     // User provides known speaker names
+  | 'interview'       // Roles: Interviewer, Interviewee
+  | 'podcast'         // Roles: Host, Guest
+  | 'panel'           // Roles: Moderator, Panelist
+  | 'custom-roles';   // User provides custom roles
 
-export const CONVERSATION_TYPE_ROLES: Record<ConversationType, string[]> = {
-  'none': [],
-  'interview': ['Interviewer', 'Interviewee'],
-  'meeting': ['Presenter', 'Participant'],
-  'panel': ['Moderator', 'Panelist'],
+export const SPEAKER_LABEL_OPTIONS: Record<SpeakerLabelMode, { label: string; type: 'none' | 'name' | 'role'; values?: string[] }> = {
+  'generic': { label: 'Generic (Speaker A, B, C...)', type: 'none' },
+  'auto-names': { label: 'Auto-detect names', type: 'name', values: [] },
+  'known-names': { label: 'Enter known names...', type: 'name' },
+  'interview': { label: 'Interview (Interviewer/Interviewee)', type: 'role', values: ['Interviewer', 'Interviewee'] },
+  'podcast': { label: 'Podcast (Host/Guest)', type: 'role', values: ['Host', 'Guest'] },
+  'panel': { label: 'Panel (Moderator/Panelist)', type: 'role', values: ['Moderator', 'Panelist'] },
+  'custom-roles': { label: 'Custom roles...', type: 'role' },
 };
 
+// Legacy aliases for backwards compatibility
+export type ConversationType = 'none' | 'interview' | 'meeting' | 'panel';
 export const CONVERSATION_TYPE_LABELS: Record<ConversationType, string> = {
   'none': 'Generic (Speaker A, B, C...)',
   'interview': 'Interview',
@@ -23,8 +31,8 @@ export const CONVERSATION_TYPE_LABELS: Record<ConversationType, string> = {
 
 export interface TranscriptionOptions {
   speakerCount: 'auto' | number;  // 'auto' or 2-20
-  speakerNames: string[];  // Kept for backwards compatibility with history
-  speakerNamesInput: string;  // Comma-separated string for the new input field
+  speakerLabelMode: SpeakerLabelMode;  // New: how to label speakers
+  speakerNamesInput: string;  // Comma-separated names or custom roles
   boostWords: string[];
   boostWordsInput: string;  // Comma-separated string for the new input field
   selectedPresets: string[];  // Array of vocabulary preset IDs
@@ -32,7 +40,9 @@ export interface TranscriptionOptions {
   detectTopics: boolean;
   analyzeSentiment: boolean;
   extractKeyPhrases: boolean;  // New: auto_highlights in AssemblyAI
-  conversationType: ConversationType;  // For speaker identification by role
+  // Legacy fields for backwards compatibility
+  speakerNames?: string[];
+  conversationType?: ConversationType;
 }
 
 export interface FileJob {
