@@ -73,6 +73,15 @@
             minute: "2-digit",
         });
     }
+
+    // Clean up filename for display
+    function cleanTitle(filename: string): string {
+        return filename
+            .replace(/\.[^/.]+$/, "") // Remove extension
+            .replace(/_/g, " ") // Underscores to spaces
+            .replace(/\s+/g, " ") // Normalize spaces
+            .trim();
+    }
 </script>
 
 {#if isOpen}
@@ -127,7 +136,7 @@
                             >
                                 <div class="item-content">
                                     <div class="item-title">
-                                        {item.filename}
+                                        {cleanTitle(item.filename)}
                                     </div>
                                     <div class="item-meta">
                                         <span
