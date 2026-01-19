@@ -4,7 +4,6 @@ import {
     Packer,
     Paragraph,
     TextRun,
-    HeadingLevel,
     AlignmentType,
     BorderStyle,
     convertInchesToTwip
@@ -28,14 +27,57 @@ const SENTIMENT_EMOJI: Record<string, string> = {
     negative: '😟'
 };
 
-// Format milliseconds to [HH:MM:SS]
+// Clean up filename for display title
+function cleanTitle(filename: string): string {
+    return filename
+        .replace(/\.[^/.]+$/, '')     // Remove extension
+        .replace(/_/g, ' ')           // Underscores to spaces
+        .replace(/\s+/g, ' ')         // Normalize spaces
+        .trim();
+}
+
+// Get unique speakers
+function getUniqueSpeakers(segments: TranscriptSegment[]): string[] {
+    const speakers = new Set<string>();
+    segments.forEach(s => speakers.add(s.speaker));
+    return Array.from(speakers);
+}
+
+// Calculate word count
+function getWordCount(segments: TranscriptSegment[]): number {
+    return segments.reduce((count, segment) => {
+        return count + segment.text.split(/\s+/).filter(w => w).length;
+    }, 0);
+}
+
+// Get total duration
+function getTotalDuration(segments: TranscriptSegment[]): number {
+    if (segments.length === 0) return 0;
+    return segments[segments.length - 1].end;
+}
+
+// Format duration for display
+function formatDuration(ms: number): string {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m`;
+    return '< 1m';
+}
+
+// Format milliseconds to MM:SS or H:MM:SS (no brackets, no leading zeros for hours)
 function formatTimestamp(ms: number): string {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-    return `[${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}]`;
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 // Generate a horizontal rule paragraph
@@ -65,6 +107,7 @@ function createSectionHeader(title: string): Paragraph {
                 bold: true,
                 size: 24, // 12pt
                 allCaps: true,
+                color: '6b7280',
             }),
         ],
         spacing: {
@@ -88,47 +131,135 @@ export async function generateWordDocument(
 ): Promise<Uint8Array> {
     const children: Paragraph[] = [];
 
-    // Title
-    children.push(
-        new Paragraph({
-            text: options.filename.replace(/\.[^/.]+$/, ''), // Remove extension
-            heading: HeadingLevel.TITLE,
-            spacing: { after: 100 },
-        })
-    );
+    // Calculate metadata upfront
+    const duration = getTotalDuration(result.segments);
+    const speakers = getUniqueSpeakers(result.segments);
+    const wordCount = getWordCount(result.segments);
 
-    // Subtitle with date
+    // Assign speaker colors
+    const speakerColorMap: Record<string, string> = {};
+    let colorIndex = 0;
+    speakers.forEach(speaker => {
+        speakerColorMap[speaker] = SPEAKER_COLORS[colorIndex % SPEAKER_COLORS.length];
+        colorIndex++;
+    });
+
+    // ========== HEADER ==========
+
+    // Title (cleaned)
     children.push(
         new Paragraph({
             children: [
                 new TextRun({
-                    text: `Transcribed on ${options.transcribedDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    })}`,
-                    color: '666666',
-                    size: 22, // 11pt
+                    text: cleanTitle(options.filename),
+                    bold: true,
+                    size: 36, // 18pt
+                    color: '1a2b4a',
                 }),
             ],
-            spacing: { after: 400 },
+            spacing: { after: 80 },
         })
     );
 
+    // Metadata line: duration • speakers • words • date
+    children.push(
+        new Paragraph({
+            children: [
+                new TextRun({
+                    text: formatDuration(duration),
+                    size: 20,
+                    color: '6b7280',
+                }),
+                new TextRun({
+                    text: '  •  ',
+                    size: 20,
+                    color: 'cccccc',
+                }),
+                new TextRun({
+                    text: `${speakers.length} speaker${speakers.length !== 1 ? 's' : ''}`,
+                    size: 20,
+                    color: '6b7280',
+                }),
+                new TextRun({
+                    text: '  •  ',
+                    size: 20,
+                    color: 'cccccc',
+                }),
+                new TextRun({
+                    text: `${wordCount.toLocaleString()} words`,
+                    size: 20,
+                    color: '6b7280',
+                }),
+                new TextRun({
+                    text: '  •  ',
+                    size: 20,
+                    color: 'cccccc',
+                }),
+                new TextRun({
+                    text: `Transcribed ${options.transcribedDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    })}`,
+                    size: 20,
+                    color: '6b7280',
+                }),
+            ],
+            spacing: { after: 200 },
+        })
+    );
+
+    // Participants line
+    const participantRuns: TextRun[] = [
+        new TextRun({
+            text: 'Participants: ',
+            size: 20,
+            color: '9ca3af',
+        }),
+    ];
+
+    speakers.forEach((speaker, i) => {
+        participantRuns.push(
+            new TextRun({
+                text: speaker,
+                size: 20,
+                color: speakerColorMap[speaker],
+                bold: true,
+            })
+        );
+        if (i < speakers.length - 1) {
+            participantRuns.push(new TextRun({
+                text: ', ',
+                size: 20,
+                color: '9ca3af',
+            }));
+        }
+    });
+
+    children.push(
+        new Paragraph({
+            children: participantRuns,
+            spacing: { after: 300 },
+        })
+    );
+
+    children.push(createHorizontalRule());
+
     // Summary section (if enabled and available)
     if (options.includeSummary && result.summary) {
-        children.push(createHorizontalRule());
         children.push(createSectionHeader('Summary'));
 
         // Parse bullets from summary
         const bulletPoints = result.summary.split('\n').filter(line => line.trim());
         for (const point of bulletPoints) {
+            const cleanPoint = point.replace(/^[•\-]\s*/, '');
             children.push(
                 new Paragraph({
                     children: [
                         new TextRun({
-                            text: point.startsWith('•') ? point : `• ${point}`,
+                            text: `• ${cleanPoint}`,
                             size: 22,
+                            color: '374151',
                         }),
                     ],
                     spacing: { before: 100, after: 100 },
@@ -136,11 +267,11 @@ export async function generateWordDocument(
                 })
             );
         }
+        children.push(createHorizontalRule());
     }
 
     // Topics section (if enabled and available)
     if (options.includeTopics && result.topics && result.topics.length > 0) {
-        children.push(createHorizontalRule());
         children.push(createSectionHeader('Topics Detected'));
 
         // Show top 5 topics
@@ -150,12 +281,13 @@ export async function generateWordDocument(
                 new Paragraph({
                     children: [
                         new TextRun({
-                            text: `${topic.label} `,
+                            text: `• ${topic.label} `,
                             size: 22,
+                            color: '374151',
                         }),
                         new TextRun({
                             text: `(${Math.round(topic.relevance)}%)`,
-                            color: '666666',
+                            color: '9ca3af',
                             size: 20,
                         }),
                     ],
@@ -164,54 +296,42 @@ export async function generateWordDocument(
                 })
             );
         }
+        children.push(createHorizontalRule());
     }
 
-    // Transcript section
-    children.push(createHorizontalRule());
+    // ========== TRANSCRIPT ==========
     children.push(createSectionHeader('Transcript'));
 
-    // Track speaker colors
-    const speakerColorMap: Record<string, string> = {};
-    let colorIndex = 0;
-
     for (const segment of result.segments) {
-        // Assign color to speaker
-        if (!speakerColorMap[segment.speaker]) {
-            speakerColorMap[segment.speaker] = SPEAKER_COLORS[colorIndex % SPEAKER_COLORS.length];
-            colorIndex++;
-        }
-
         const speakerColor = speakerColorMap[segment.speaker];
 
-        // Build the speaker line
-        const speakerLine: TextRun[] = [
+        // Speaker line: "Speaker Name  0:00"
+        const speakerRuns: TextRun[] = [
             new TextRun({
-                text: `[${segment.speaker}] `,
+                text: segment.speaker,
                 bold: true,
                 color: speakerColor,
                 size: 22,
             }),
             new TextRun({
-                text: formatTimestamp(segment.start),
-                color: '999999',
-                size: 20,
+                text: `  ${formatTimestamp(segment.start)}`,
+                color: '9ca3af',
+                size: 18, // Smaller timestamp
             }),
         ];
 
-        // Add sentiment indicator if enabled
+        // Add sentiment if enabled
         if (options.includeSentiment && segment.sentiment) {
-            speakerLine.push(
-                new TextRun({
-                    text: ` ${SENTIMENT_EMOJI[segment.sentiment] || ''}`,
-                    size: 22,
-                })
-            );
+            speakerRuns.push(new TextRun({
+                text: `  ${SENTIMENT_EMOJI[segment.sentiment] || ''}`,
+                size: 22,
+            }));
         }
 
         children.push(
             new Paragraph({
-                children: speakerLine,
-                spacing: { before: 200, after: 80 },
+                children: speakerRuns,
+                spacing: { before: 240, after: 60 },
             })
         );
 
@@ -222,9 +342,10 @@ export async function generateWordDocument(
                     new TextRun({
                         text: segment.text,
                         size: 22,
+                        color: '374151',
                     }),
                 ],
-                spacing: { after: 160 },
+                spacing: { after: 120 },
                 alignment: AlignmentType.LEFT,
             })
         );
