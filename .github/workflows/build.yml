@@ -122,7 +122,7 @@ jobs:
       - name: Generate latest.json manifest
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          REPO="joemacstevens/ohg-scribe"
+          REPO="joemacOHG/ohg-scribe"
           BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
           
           # Create the latest.json manifest for the updater

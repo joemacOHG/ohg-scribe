@@ -33,7 +33,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/joemacstevens/ohg-scribe/releases/latest/download/latest.json"
+        "https://github.com/joemacOHG/ohg-scribe/releases/latest/download/latest.json"
       ],
       "pubkey": ""
     }
