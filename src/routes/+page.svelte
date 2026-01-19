@@ -309,6 +309,11 @@
     toasts = toasts.filter((t) => t.id !== id);
   }
 
+  function handleViewTranscript(job: FileJob) {
+    // TODO: Implement in-app transcript viewer
+    showToast("Transcript viewer coming soon!", "info");
+  }
+
   let hasJobs = $derived(jobs.length > 0);
 </script>
 
@@ -382,7 +387,12 @@
     <DropZone onFilesDropped={handleFilesDropped} compact={hasJobs} />
 
     {#if hasJobs}
-      <FileQueue {jobs} onOpen={handleOpenFile} onRetry={handleRetry} />
+      <FileQueue
+        {jobs}
+        onOpen={handleOpenFile}
+        onRetry={handleRetry}
+        onViewTranscript={handleViewTranscript}
+      />
     {/if}
 
     <OptionsPanel openaiApiKey={openaiKey} />
