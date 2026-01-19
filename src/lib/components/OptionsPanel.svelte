@@ -5,9 +5,17 @@
   import VocabularySection from "./options/VocabularySection.svelte";
   import AnalysisSection from "./options/AnalysisSection.svelte";
   import VocabularyManager from "./vocabulary-manager/VocabularyManager.svelte";
+  import ExtractFromDocument from "./vocabulary-manager/ExtractFromDocument.svelte";
+
+  interface Props {
+    openaiApiKey?: string;
+  }
+
+  let { openaiApiKey = "" }: Props = $props();
 
   let isExpanded = $state(false);
   let vocabManagerOpen = $state(false);
+  let extractModalOpen = $state(false);
 
   let options: TranscriptionOptions = $state({
     speakerCount: "auto",
@@ -61,6 +69,14 @@
     vocabManagerOpen = false;
   }
 
+  function handleOpenExtract() {
+    extractModalOpen = true;
+  }
+
+  function handleCloseExtract() {
+    extractModalOpen = false;
+  }
+
   // Analysis handlers
   function handleSummaryChange(value: boolean) {
     optionsStore.update({ includeSummary: value });
@@ -104,6 +120,7 @@
         onBoostWordsInputChange={handleBoostWordsInputChange}
         onPresetsChange={handlePresetsChange}
         onOpenManager={handleOpenManager}
+        onOpenExtract={handleOpenExtract}
       />
 
       <AnalysisSection
@@ -121,7 +138,18 @@
 </div>
 
 <!-- Vocabulary Manager Modal -->
-<VocabularyManager isOpen={vocabManagerOpen} onClose={handleCloseManager} />
+<VocabularyManager
+  isOpen={vocabManagerOpen}
+  onClose={handleCloseManager}
+  onOpenExtract={handleOpenExtract}
+/>
+
+<!-- Extract from Document Modal -->
+<ExtractFromDocument
+  isOpen={extractModalOpen}
+  onClose={handleCloseExtract}
+  {openaiApiKey}
+/>
 
 <style>
   .options-panel {

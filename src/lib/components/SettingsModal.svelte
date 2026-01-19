@@ -2,23 +2,34 @@
   interface Props {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (apiKey: string) => void;
-    currentKey?: string;
+    onSave: (assemblyaiKey: string, openaiKey: string) => void;
+    currentAssemblyAIKey?: string;
+    currentOpenAIKey?: string;
   }
 
-  let { isOpen, onClose, onSave, currentKey = "" }: Props = $props();
-  let apiKey = $state("");
+  let {
+    isOpen,
+    onClose,
+    onSave,
+    currentAssemblyAIKey = "",
+    currentOpenAIKey = "",
+  }: Props = $props();
+
+  let assemblyaiKey = $state("");
+  let openaiKey = $state("");
   let showKey = $state(false);
+  let showOpenAIKey = $state(false);
 
   $effect(() => {
     if (isOpen) {
-      apiKey = currentKey;
+      assemblyaiKey = currentAssemblyAIKey;
+      openaiKey = currentOpenAIKey;
     }
   });
 
   function handleSave() {
-    if (apiKey.trim()) {
-      onSave(apiKey.trim());
+    if (assemblyaiKey.trim()) {
+      onSave(assemblyaiKey.trim(), openaiKey.trim());
       onClose();
     }
   }
@@ -59,7 +70,7 @@
             <input
               type={showKey ? "text" : "password"}
               id="api-key"
-              bind:value={apiKey}
+              bind:value={assemblyaiKey}
               placeholder="Enter your API key"
             />
             <button
@@ -72,10 +83,39 @@
             </button>
           </div>
           <p class="help-text">
-            Get your API key from <a
+            For transcription. Get your key from <a
               href="https://www.assemblyai.com"
               target="_blank"
               rel="noopener">assemblyai.com</a
+            >
+          </p>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+          <label for="openai-key"
+            >OpenAI API Key <span class="optional">(optional)</span></label
+          >
+          <div class="input-wrapper">
+            <input
+              type={showOpenAIKey ? "text" : "password"}
+              id="openai-key"
+              bind:value={openaiKey}
+              placeholder="sk-..."
+            />
+            <button
+              class="toggle-visibility"
+              onclick={() => (showOpenAIKey = !showOpenAIKey)}
+              type="button"
+              aria-label={showOpenAIKey ? "Hide API key" : "Show API key"}
+            >
+              {showOpenAIKey ? "🙈" : "👁️"}
+            </button>
+          </div>
+          <p class="help-text">
+            For extracting vocabulary from documents. Get your key from <a
+              href="https://platform.openai.com/api-keys"
+              target="_blank"
+              rel="noopener">platform.openai.com</a
             >
           </p>
         </div>
@@ -83,7 +123,11 @@
 
       <div class="modal-footer">
         <button class="btn-cancel" onclick={onClose}>Cancel</button>
-        <button class="btn-save" onclick={handleSave} disabled={!apiKey.trim()}>
+        <button
+          class="btn-save"
+          onclick={handleSave}
+          disabled={!assemblyaiKey.trim()}
+        >
           Save
         </button>
       </div>
@@ -208,6 +252,12 @@
 
   .help-text a:hover {
     text-decoration: underline;
+  }
+
+  .optional {
+    font-weight: 400;
+    color: var(--gray-400, #9ca3af);
+    font-size: 12px;
   }
 
   .modal-footer {

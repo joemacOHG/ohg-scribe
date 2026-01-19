@@ -29,6 +29,7 @@
   let settingsOpen = $state(false);
   let historyOpen = $state(false);
   let apiKey = $state("");
+  let openaiKey = $state("");
   let jobs: FileJob[] = $state([]);
   let options: TranscriptionOptions = $state({
     speakerCount: "auto",
@@ -65,6 +66,7 @@
       if (storedKey) {
         apiKey = storedKey;
       }
+      // TODO: Load OpenAI key from storage
     } catch (e) {
       console.error("Failed to load API key:", e);
     }
@@ -265,19 +267,24 @@
     }
   }
 
-  async function handleSaveApiKey(key: string) {
+  async function handleSaveApiKeys(
+    assemblyaiKeyVal: string,
+    openaiKeyVal: string,
+  ) {
     try {
-      await saveApiKey(key);
-      apiKey = key;
-      showToast("API key saved", "success");
+      await saveApiKey(assemblyaiKeyVal);
+      apiKey = assemblyaiKeyVal;
+      openaiKey = openaiKeyVal;
+      // TODO: Save OpenAI key to storage
+      showToast("Settings saved", "success");
 
       // Start processing if there are queued files
       if (!isProcessing && jobs.some((j) => j.status === "queued")) {
         processQueue();
       }
     } catch (e) {
-      console.error("Failed to save API key:", e);
-      showToast("Failed to save API key", "error");
+      console.error("Failed to save API keys:", e);
+      showToast("Failed to save settings", "error");
     }
   }
 
@@ -369,14 +376,15 @@
       <FileQueue {jobs} onOpen={handleOpenFile} onRetry={handleRetry} />
     {/if}
 
-    <OptionsPanel />
+    <OptionsPanel openaiApiKey={openaiKey} />
   </div>
 
   <SettingsModal
     isOpen={settingsOpen}
     onClose={() => (settingsOpen = false)}
-    onSave={handleSaveApiKey}
-    currentKey={apiKey}
+    onSave={handleSaveApiKeys}
+    currentAssemblyAIKey={apiKey}
+    currentOpenAIKey={openaiKey}
   />
 
   <HistoryPanel isOpen={historyOpen} onClose={() => (historyOpen = false)} />

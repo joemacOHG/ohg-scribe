@@ -9,6 +9,7 @@ use commands::vocabulary::{
     load_vocabularies, create_vocabulary, update_vocabulary, delete_vocabulary,
     duplicate_vocabulary, create_vocabulary_category, export_vocabularies, import_vocabularies
 };
+use commands::vocabulary_extract::{extract_document_text, extract_vocabulary_terms};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -54,6 +55,9 @@ pub fn run() {
             create_vocabulary_category,
             export_vocabularies,
             import_vocabularies,
+            // Vocabulary extraction
+            extract_document_text,
+            extract_vocabulary_terms,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

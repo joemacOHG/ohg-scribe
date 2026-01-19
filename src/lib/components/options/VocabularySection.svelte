@@ -10,6 +10,7 @@
         onBoostWordsInputChange: (value: string) => void;
         onPresetsChange: (presets: string[]) => void;
         onOpenManager?: () => void;
+        onOpenExtract?: () => void;
     }
 
     let {
@@ -20,6 +21,7 @@
         onBoostWordsInputChange,
         onPresetsChange,
         onOpenManager,
+        onOpenExtract,
     }: Props = $props();
 
     let isExpanded = $state(false);
@@ -230,6 +232,19 @@
                 </p>
             </div>
         {/if}
+
+        <!-- Extract from Document link -->
+        <button class="extract-link" onclick={onOpenExtract}>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <path d="M9 15h6" />
+                <path d="M12 18v-6" />
+            </svg>
+            Extract terms from a document
+        </button>
     </div>
 </div>
 
@@ -479,5 +494,35 @@
         font-size: 11px;
         color: var(--gray-500, #6b7280);
         line-height: 1.4;
+    }
+
+    /* Extract link */
+    .extract-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: transparent;
+        border: 1px dashed var(--gray-300, #d1d5db);
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--gray-500, #6b7280);
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .extract-link:hover {
+        border-color: var(--magenta, #e91388);
+        color: var(--magenta, #e91388);
+        background: rgba(233, 19, 136, 0.03);
+    }
+
+    .extract-link svg {
+        width: 14px;
+        height: 14px;
+        stroke: currentColor;
     }
 </style>
