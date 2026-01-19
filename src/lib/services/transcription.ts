@@ -62,6 +62,15 @@ export async function deleteApiKey(): Promise<void> {
     return await invoke('delete_api_key');
 }
 
+// OpenAI key commands
+export async function getOpenAIKey(): Promise<string | null> {
+    return await invoke<string | null>('get_openai_key');
+}
+
+export async function setOpenAIKey(apiKey: string): Promise<void> {
+    return await invoke('set_openai_key', { apiKey });
+}
+
 // FFmpeg conversion
 export async function convertToAudio(inputPath: string): Promise<ConversionResult> {
     return await invoke<ConversionResult>('convert_to_audio', { inputPath });

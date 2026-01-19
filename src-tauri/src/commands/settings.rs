@@ -31,6 +31,7 @@ impl serde::Serialize for SettingsError {
 #[derive(Serialize, Deserialize, Default)]
 struct AppSettings {
     api_key: Option<String>,
+    openai_key: Option<String>,
 }
 
 // Get the settings file path
@@ -120,5 +121,37 @@ pub async fn delete_api_key(app: AppHandle) -> Result<(), SettingsError> {
     save_settings(&app, &settings)?;
     
     info!("API key deleted");
+    Ok(())
+}
+
+/// Get the stored OpenAI API key
+#[tauri::command]
+pub async fn get_openai_key(app: AppHandle) -> Result<Option<String>, SettingsError> {
+    info!("Loading OpenAI API key from settings...");
+    
+    let settings = load_settings(&app)?;
+    
+    match &settings.openai_key {
+        Some(key) => {
+            info!("OpenAI API key found (length: {})", key.len());
+            Ok(Some(key.clone()))
+        },
+        None => {
+            info!("No OpenAI API key found in settings");
+            Ok(None)
+        }
+    }
+}
+
+/// Store the OpenAI API key
+#[tauri::command]
+pub async fn set_openai_key(app: AppHandle, api_key: String) -> Result<(), SettingsError> {
+    info!("Saving OpenAI API key to settings (length: {})", api_key.len());
+    
+    let mut settings = load_settings(&app)?;
+    settings.openai_key = Some(api_key);
+    save_settings(&app, &settings)?;
+    
+    info!("OpenAI API key saved successfully");
     Ok(())
 }

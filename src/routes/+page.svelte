@@ -12,6 +12,8 @@
   import {
     getApiKey,
     setApiKey as saveApiKey,
+    getOpenAIKey,
+    setOpenAIKey as saveOpenAIKey,
     convertToAudio,
     cleanupTempDir,
     uploadAudio,
@@ -60,15 +62,18 @@
   });
 
   onMount(async () => {
-    // Load API key from keychain
+    // Load API keys from storage
     try {
       const storedKey = await getApiKey();
       if (storedKey) {
         apiKey = storedKey;
       }
-      // TODO: Load OpenAI key from storage
+      const storedOpenAIKey = await getOpenAIKey();
+      if (storedOpenAIKey) {
+        openaiKey = storedOpenAIKey;
+      }
     } catch (e) {
-      console.error("Failed to load API key:", e);
+      console.error("Failed to load API keys:", e);
     }
   });
 
@@ -274,8 +279,12 @@
     try {
       await saveApiKey(assemblyaiKeyVal);
       apiKey = assemblyaiKeyVal;
+
+      if (openaiKeyVal) {
+        await saveOpenAIKey(openaiKeyVal);
+      }
       openaiKey = openaiKeyVal;
-      // TODO: Save OpenAI key to storage
+
       showToast("Settings saved", "success");
 
       // Start processing if there are queued files

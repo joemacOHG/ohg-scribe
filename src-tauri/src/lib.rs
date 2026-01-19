@@ -3,7 +3,7 @@ mod commands;
 use commands::convert::{cleanup_temp_dir, convert_to_audio};
 use commands::history::{save_history_entry, get_history_list, get_history_entry, delete_history_entry};
 use commands::presets::{save_preset, get_presets, delete_preset};
-use commands::settings::{delete_api_key, get_api_key, set_api_key};
+use commands::settings::{delete_api_key, get_api_key, set_api_key, get_openai_key, set_openai_key};
 use commands::transcribe::{poll_transcription, submit_transcription, upload_audio};
 use commands::vocabulary::{
     load_vocabularies, create_vocabulary, update_vocabulary, delete_vocabulary,
@@ -33,6 +33,8 @@ pub fn run() {
             get_api_key,
             set_api_key,
             delete_api_key,
+            get_openai_key,
+            set_openai_key,
             // AssemblyAI
             upload_audio,
             submit_transcription,
