@@ -23,16 +23,6 @@ function createOptionsStore() {
         update: (updates: Partial<TranscriptionOptions>) => {
             update(options => ({ ...options, ...updates }));
         },
-        setSpeakerNames: (namesString: string) => {
-            update(options => ({
-                ...options,
-                speakerNamesInput: namesString,
-                speakerNames: namesString
-                    .split(',')
-                    .map(name => name.trim())
-                    .filter(name => name.length > 0)
-            }));
-        },
         // Set boost words from comma-separated string (legacy)
         setBoostWords: (wordsString: string) => {
             update(options => ({

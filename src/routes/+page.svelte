@@ -37,7 +37,7 @@
   let jobs: FileJob[] = $state([]);
   let options: TranscriptionOptions = $state({
     speakerCount: "auto",
-    speakerNames: [],
+    speakerLabelMode: "generic",
     speakerNamesInput: "",
     boostWords: [],
     boostWordsInput: "",
@@ -46,7 +46,6 @@
     detectTopics: false,
     analyzeSentiment: false,
     extractKeyPhrases: false,
-    conversationType: "none",
   });
   let toasts: {
     id: string;
@@ -170,10 +169,14 @@
         response.utterances?.length || 0,
       );
 
-      const transcriptResult = parseTranscriptResponse(
-        response,
-        options.speakerNames,
-      );
+      const speakerNames = options.speakerNamesInput
+        ? options.speakerNamesInput
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0)
+        : [];
+
+      const transcriptResult = parseTranscriptResponse(response, speakerNames);
 
       console.log(
         "Parsed transcript segments:",
@@ -214,7 +217,7 @@
           job.filepath,
           transcriptResult,
           {
-            speakerNames: options.speakerNames,
+            speakerNames: speakerNames,
             includedSummary: options.includeSummary,
             includedTopics: options.detectTopics,
             includedSentiment: options.analyzeSentiment,
