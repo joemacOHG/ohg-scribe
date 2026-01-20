@@ -94,6 +94,11 @@ jobs:
         run: |
           # WebView2 is already installed on Windows runners
 
+      - name: Install create-dmg (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install create-dmg
+
       - name: Install frontend dependencies
         run: npm ci
 
