@@ -127,10 +127,10 @@ jobs:
         run: |
           echo "=== Starting rename process ==="
           
-          # ARM64 files
+          # ARM64 files (in macos subdirectory)
           echo "Processing ARM64 artifacts..."
-          if [ -d "artifacts/OHG-Scribe-macOS-ARM64" ]; then
-            cd artifacts/OHG-Scribe-macOS-ARM64
+          if [ -d "artifacts/OHG-Scribe-macOS-ARM64/macos" ]; then
+            cd artifacts/OHG-Scribe-macOS-ARM64/macos
             for f in *".app.tar.gz"; do
               if [ -f "$f" ]; then
                 newname="${f%.app.tar.gz}_aarch64.app.tar.gz"
@@ -145,15 +145,15 @@ jobs:
                 mv "$f" "$newname"
               fi
             done
-            cd ../..
+            cd ../../..
           else
-            echo "ARM64 directory not found"
+            echo "ARM64 macos directory not found"
           fi
           
-          # Intel files
+          # Intel files (in macos subdirectory)
           echo "Processing Intel artifacts..."
-          if [ -d "artifacts/OHG-Scribe-macOS-Intel" ]; then
-            cd artifacts/OHG-Scribe-macOS-Intel
+          if [ -d "artifacts/OHG-Scribe-macOS-Intel/macos" ]; then
+            cd artifacts/OHG-Scribe-macOS-Intel/macos
             for f in *".app.tar.gz"; do
               if [ -f "$f" ]; then
                 newname="${f%.app.tar.gz}_x64.app.tar.gz"
@@ -168,9 +168,9 @@ jobs:
                 mv "$f" "$newname"
               fi
             done
-            cd ../..
+            cd ../../..
           else
-            echo "Intel directory not found"
+            echo "Intel macos directory not found"
           fi
           
           echo "=== Rename complete. Final structure: ==="
