@@ -23,10 +23,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
+          # ARM64 needs native ARM runner (macos-14)
+          - platform: macos-14
             target: aarch64-apple-darwin
             name: macOS-ARM64
-          - platform: macos-latest
+          # Intel needs x86 runner (macos-13)
+          - platform: macos-13
             target: x86_64-apple-darwin
             name: macOS-Intel
           - platform: windows-latest
