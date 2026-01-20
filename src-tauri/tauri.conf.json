@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "OHG Scribe",
-  "version": "1.5.13",
+  "version": "1.5.14",
   "identifier": "com.ohg.scribe",
   "build": {
     "beforeDevCommand": "npm run dev",
